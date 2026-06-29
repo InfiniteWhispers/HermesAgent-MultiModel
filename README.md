@@ -18,12 +18,8 @@ HermesAgent-MultiModel implements a **local-first approach** to multi-model infe
 ├── README.md                          # This file — start here
 ├── .hermes/
 │   ├── config.yaml                   # Hermes providers + routing config
-│   └── bin/local_moa.py             # External Mixture-of-Agents CLI
 ├── docs/
 │   └── optimization-guide.md         # 15-section field guide: hardware, models, tuning
-├── skills/
-│   └── mixture-of-agents/
-│       └── README.md                 # MoA usage & examples
 └── .github/                          # CI/CD workflows (optional)
 ```
 
@@ -35,7 +31,7 @@ HermesAgent-MultiModel implements a **local-first approach** to multi-model infe
 - **RAM**: 48+ GB (64 GB ideal)
 - **Storage**: 100 GB free NVMe SSD
 - **OS**: Ubuntu 22.04+, WSL2 on Windows 11, or macOS 12+
-- **Python**: 3.10+
+- **Python**: 3.10+ (Optional but useful when customizing and building scripts)
 
 ### 2. **Install Ollama**
 ```bash
@@ -124,25 +120,9 @@ See [Ollama Installation & Systemd Tuning](./docs/optimization-guide.md#2-ollama
 
 Query multiple models in parallel, then synthesize via an aggregator:
 
-```bash
-~/.hermes/bin/local_moa.py --prompt "Your question here"
-```
-
 **Default setup:**
 - References: `qwen3:14b`, `ornith-9b`  
 - Aggregator: `gpt-oss-20b`
-
-**Custom example:**
-```bash
-~/.hermes/bin/local_moa.py \
-  --prompt "Explain RSA vs DSA" \
-  --references gpt-oss-20b qwen3:14b \
-  --aggregator qwen3:14b \
-  --temperature 0.3 \
-  --timeout 240
-```
-
-See [local_moa — Usage Guide](./skills/mixture-of-agents/README.md) for full documentation.
 
 ## 🛠️ Advanced Configuration
 
@@ -174,7 +154,7 @@ See [VRAM Budget at 64K Context](./docs/optimization-guide.md#vram-budget-at-64k
 
 ## 📖 Complete Documentation
 
-- **[optimization-guide.md](./docs/optimization-guide.md)** — 15-section deep dive
+- **[optimization-guide.md](./docs/optimization-guide.md)** — 11-section deep dive
   - Hardware requirements & WSL2 tuning
   - Ollama systemd configuration
   - Model roster notes & comparisons
@@ -184,18 +164,13 @@ See [VRAM Budget at 64K Context](./docs/optimization-guide.md#vram-budget-at-64k
   - Key pitfalls & troubleshooting
   - Upgrade paths & scaling advice
 
-- **[local_moa Usage Guide](./skills/mixture-of-agents/README.md)** — MoA CLI reference
-  - Basic usage & examples
-  - Model alias → Ollama tag mapping
-  - Option flags & environment variables
-
-- **[Hermes Config Skeleton](./hermes/config.yaml)** — Copy-paste provider block
+- **[Hermes Config Skeleton](./hermes/config.yaml)**
+  - Copy/Paste to your config.yaml what you need
+    - Don't forget to make a backup ;)
 
 ## 🧪 Troubleshooting
 
-### Ollama Hangs / Timeouts
-- Cold load (first inference after restart) can take 60–90 s with large models  
-- Set `--timeout 240` when running 3+ models in MoA
+### Ollama Hangs
 - Enable FlashAttention: `OLLAMA_FLASH_ATTENTION=1`
 
 ### Out-of-Memory (OOM)
@@ -227,7 +202,7 @@ See [VRAM Budget at 64K Context](./docs/optimization-guide.md#vram-budget-at-64k
 
 - **Created:** 2026-06-29
 - **Language:** Python 100%
-- **License:** (See LICENSE, if present)
+- **License:** MIT
 - **Maintainer:** InfiniteWhispers
 
 ## 🔗 Related Links
@@ -243,7 +218,6 @@ See [VRAM Budget at 64K Context](./docs/optimization-guide.md#vram-budget-at-64k
 2. Install Ollama
 3. Pull & build 8 models (takes ~60 min on good internet)
 4. Configure Hermes provider block
-5. Run your first query with `local_moa.py`
 
 For detailed tuning, see [optimization-guide.md](./docs/optimization-guide.md).
 ```
@@ -263,4 +237,4 @@ For detailed tuning, see [optimization-guide.md](./docs/optimization-guide.md).
 9. **Concepts Explained** — Task routing, agentic loops, reasoning blocks in plain language
 10. **Call to Action** — 5-step path to first working inference
 
-This README balances **depth** (links to 15-section optimization guide) with **actionability** (you can follow Getting Started without reading everything else).
+
