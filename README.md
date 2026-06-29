@@ -35,7 +35,7 @@ HermesAgent-MultiModel implements a **local-first approach** to multi-model infe
 
 ### 2. **Install Ollama**
 ```bash
-curl -fsSL https://ollama.com/install.sh | sh
+# inspect first: curl -fsSL https://ollama.com/install.sh | less
 ```
 
 ### 3. **Pull & Build Models**
