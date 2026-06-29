@@ -233,19 +233,7 @@ agent:
 
       These bypass normal routing — execute immediately without model selection logic:
 
-
-      /localmoa <question> [flags]   → Run local_moa CLI via <hermes-bin>/local_moa.py
-      @localmoa <question> [flags]   → Same as /localmoa
-        Parse any inline flags from the user message and pass to the CLI verbatim.
-        Supported flags: --references, --aggregator, --system, --temperature,
-                         --timeout, --num-ctx, --verbose
-        Default references: qwen3:14b ornith-9b
-        Default aggregator: gpt-oss-20b
-        Note: use Ollama pull tags, not Hermes aliases (qwen3:14b not qwen3-14b-think)
-
-
       /moa <question>                → Invoke Hermes built-in MoA (local preset)
-      @moa <question>                → Same as /moa
         Uses config.yaml moa.presets.local: qwen3-14b-think + ornith-9b → gpt-oss-20b
 
 
@@ -1038,7 +1026,7 @@ moa:
       reference_temperature: 0.6
       aggregator_temperature: 0.4
       max_tokens: 32768
-      enabled: false   # enable per-session with /moa or @moa prefix — not default
+      enabled: false   # enable per-session with /moa prefix — not default
 
     # ── Cloud MoA — high quality, high cost ──────────────────────────
     # CAUTION: every MoA call hits openai-codex + openrouter simultaneously.
