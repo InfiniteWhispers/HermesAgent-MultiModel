@@ -1,11 +1,10 @@
 model:
-  default: gpt-oss:20b
+  default: gpt-oss-20b
   provider: custom:ollama
   base_url: http://localhost:11434/v1
   timeout: 600
   context_length: 65536
   ollama_num_ctx: 65536
-  max_tokens: 32768
 providers:
   moa:
     name: local-moa
