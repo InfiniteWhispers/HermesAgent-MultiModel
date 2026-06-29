@@ -19,7 +19,7 @@ HermesAgent-MultiModel implements a **local-first approach** to multi-model infe
 ├── .hermes/
 │   ├── config.yaml                   # Hermes providers + routing config
 ├── docs/
-│   └── optimization-guide.md         # 15-section field guide: hardware, models, tuning
+│   └── optimization-guide.md         # 11-section field guide: hardware, models, tuning
 └── .github/                          # CI/CD workflows (optional)
 ```
 
