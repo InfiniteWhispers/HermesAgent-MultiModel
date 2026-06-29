@@ -1,1 +1,7 @@
-x
+# .github/CODEOWNERS
+
+# Protect everything under .github (including this file)
+/.github/                     @bsc7080gbc
+
+# Protect Hermes config
+/.hermes/config.yaml          @bsc7080gbc
