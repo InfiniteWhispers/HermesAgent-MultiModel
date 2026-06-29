@@ -5,7 +5,7 @@ Ollama docs and Hermes changelog when updating.*
 
 NOTE: If you don't have one, I recommend getting one. Fans go BRRRRRR
 
-* [llano V12 Ultra Laptop Cooling Pad](https://www.amazon.com/llano-V12-Ultra-Software-Adjustable/dp/B0F6LG31LV/ref=pd_lpo_d_sccl_1/140-7793452-5865801)
+* [llano V12 Ultra Laptop Cooling Pad](https://www.amazon.com/dp/B0F6LG31LV)
 
 # Hermes AI Agent Optimization Guide
 
@@ -93,7 +93,7 @@ Practical estimates for this roster at `q8_0` KV:
 ### Install Ollama
 
 ```bash
-curl -fsSL https://ollama.com/install.sh | sh
+# inspect first: curl -fsSL https://ollama.com/install.sh | less
 ```
 
 ### Critical Environment Variables
