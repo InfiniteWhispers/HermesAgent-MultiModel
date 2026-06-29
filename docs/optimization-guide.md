@@ -349,7 +349,7 @@ This goes inside `~/.hermes/config.yaml` starting at the `model:` key.
 
 ```yaml
 model:
-  default: gpt-oss:20b
+  default: gpt-oss-20b
   provider: custom:ollama
   base_url: http://localhost:11434/v1
   timeout: 600
