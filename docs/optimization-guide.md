@@ -685,7 +685,7 @@ auxiliary:
 
 MoA presets define which models act as drafters and which aggregates. The `enabled`
 flag controls **auto-activation** (whether Hermes silently fans out every prompt
-through MoA), not whether `/moa` works. Manual `/moa` and `@moa` invocations always
+through MoA), not whether `/moa` works. Manual `/moa` invocations always
 work regardless of `enabled: false`.
 
 ```yaml
@@ -713,7 +713,7 @@ moa:
       reference_temperature: 0.6
       aggregator_temperature: 0.4
       max_tokens: 32768
-      enabled: false   # enable per-session with /moa or @moa prefix — not default
+      enabled: false   # enable per-session with /moa prefix — not default
 
     # ── Cloud MoA — high quality, high cost ──────────────────────────
     # CAUTION: every MoA call hits openai-codex + openrouter simultaneously.
@@ -770,19 +770,7 @@ this into your Hermes `config.yaml` under `personalities:`.
 
       These bypass normal routing — execute immediately without model selection logic:
 
-
-      /localmoa <question> [flags]   → Run local_moa CLI via <hermes-bin>/local_moa.py
-      @localmoa <question> [flags]   → Same as /localmoa
-        Parse any inline flags from the user message and pass to the CLI verbatim.
-        Supported flags: --references, --aggregator, --system, --temperature,
-                         --timeout, --num-ctx, --verbose
-        Default references: qwen3:14b ornith-9b
-        Default aggregator: gpt-oss-20b
-        Note: use Ollama pull tags, not Hermes aliases (qwen3:14b not qwen3-14b-think)
-
-
       /moa <question>                → Invoke Hermes built-in MoA (local preset)
-      @moa <question>                → Same as /moa
         Uses config.yaml moa.presets.local: qwen3-14b-think + ornith-9b → gpt-oss-20b
 
 
@@ -1149,88 +1137,7 @@ this into your Hermes `config.yaml` under `personalities:`.
 
 ---
 
-## 10. Mixture-of-Agents: Built-in vs External
-
-There are two distinct MoA mechanisms. They complement each other.
-
-| | Hermes Built-in MoA | External `local_moa.py` |
-|---|---|---|
-| Trigger | `/moa` or `@moa` | `/localmoa` or `@localmoa` |
-| Config location | `config.yaml moa.presets.local` | CLI defaults + inline flags |
-| Model references | Hermes aliases | Ollama pull tags |
-| Runtime override | No (edit config.yaml) | Yes — inline flags |
-| Dependency | Hermes only | Python 3, Ollama HTTP API |
-| Verbose mode | No | `--verbose` flag |
-
-### When to Use Which
-
-- **`/moa`**: fast, zero-config, respects Hermes routing — good default
-- **`/localmoa`**: when you need to override models at runtime, add a custom
-  system prompt, control temperature per-run, or debug individual model outputs
-  with `--verbose`
-
----
-
-## 11. local_moa.py — External CLI Script
-
-Save this to `~/.hermes/bin/local_moa.py` and make it executable:
-
-```bash
-mkdir -p ~/.hermes/bin
-cp local_moa.py ~/.hermes/bin/local_moa.py
-chmod +x ~/.hermes/bin/local_moa.py
-```
-
-See skills/mixture-of-agents/scripts/local_moa.py
-
-
-### Install & Verify
-
-```bash
-# Install
-mkdir -p ~/.hermes/bin
-cp local_moa.py ~/.hermes/bin/local_moa.py
-chmod +x ~/.hermes/bin/local_moa.py
-
-# Test directly
-~/.hermes/bin/local_moa.py --prompt "What is RSA encryption?" --verbose
-
-# With custom models
-~/.hermes/bin/local_moa.py \
-  --prompt "Explain gradient descent" \
-  --references qwen3:14b qwythos-9b gpt-oss-20b \
-  --aggregator gpt-oss-20b \
-  --temperature 0.3 \
-  --verbose
-
-# Via Hermes
-# In your Hermes session:
-# /localmoa explain RSA vs DSA
-# @localmoa what are the main vectors for KV cache poisoning? --verbose
-```
-
----
-
-## 12. Hermes MoA Skill (SKILL.md)
-
-Save as `~/.hermes/skills/mixture-of-agents/SKILL.md`:
-
-See skills/mixture-of-agents/SKILL.md
-
-## Execution
-
-When triggered, run:
-
-```bash
-~/.hermes/bin/local_moa.py --prompt "<user_question>" [parsed inline flags]
-```
-
-Return the stdout of the script as your response. Stderr (progress lines) is
-informational — do not surface it to the user unless they pass `--verbose`.
-
----
-
-## 13. Key Lessons & Pitfalls
+## 10. Key Lessons & Pitfalls
 
 These are things that burned hours before being resolved — listed so you don't repeat them.
 
@@ -1248,7 +1155,7 @@ These are things that burned hours before being resolved — listed so you don't
 |-------|---------|-----|
 | `provider: auto` in auxiliary | Hermes stops responding, no error | Pin every aux slot to a specific provider+model |
 | `moa.default_preset` not set | `/moa` uses wrong preset | Set `moa.default_preset: local` explicitly |
-| MoA references using wrong model names | MoA runs wrong models | Use Hermes aliases in `moa.presets.local.references`, Ollama tags in `local_moa.py` |
+| MoA references using wrong model names | MoA runs wrong models | Use Hermes aliases in `moa.presets.local.references` |
 
 ### Modelfile Mistakes
 
@@ -1336,8 +1243,7 @@ models fail. Never use it as a fallback in automated loops — costs accumulate 
 ### Routing Cheat Sheet
 
 ```
-/localmoa or @localmoa → local_moa CLI
-/moa or @moa           → Hermes built-in MoA
+/moa                   → Hermes built-in MoA
 Image input            → qwen3-vl-8b
 Embeddings / RAG       → nomic-embed-text
 Tool call / agent loop → gpt-oss-20b
