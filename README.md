@@ -2,6 +2,8 @@
 
 **A fully-local, multi-model AI agent framework with Mixture-of-Agents (MoA) orchestration.** Run a high-performance agentic stack on consumer GPUs (RTX 4080/5080) using Hermes + Ollama, with zero cloud dependencies.
 
+[Video DriveBy](https://drive.google.com/file/d/1ISlHlSgezZIUkgkkuku-oafzTpl4kdAF/view?usp=sharing)
+
 ## 🎯 Quick Summary
 
 HermesAgent-MultiModel implements a **local-first approach** to multi-model inference, routing tasks to specialized models (planning, coding, reasoning, vision) via an intelligent orchestration layer. It includes:
