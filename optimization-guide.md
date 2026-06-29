@@ -513,6 +513,7 @@ fallback_providers:
     timeout: 600
     max_context: 65536
   - provider: anthropic
+  # assumes you have set ANTHROPIC_API_KEY in your environment  
     model: claude-haiku-4-5-20251001
     timeout: 600
     key_env: ANTHROPIC_API_KEY
