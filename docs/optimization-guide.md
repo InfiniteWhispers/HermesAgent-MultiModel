@@ -27,12 +27,8 @@ NOTE: If you don't have one, I recommend getting one. Fans go BRRRRRR
 7. [Hermes Config — Auxiliary Block](#7-hermes-config--auxiliary-block)
 8. [Hermes Config — MoA Presets](#8-hermes-config--moa-presets)
 9. [Personalities & Routing Logic](#9-personalities--routing-logic)
-10. [Mixture-of-Agents: Built-in vs External](#10-mixture-of-agents-built-in-vs-external)
-11. [local_moa.py — External CLI Script](#11-local_moapy--external-cli-script)
-12. [Hermes MoA Skill (SKILL.md)](#12-hermes-moa-skill-skillmd)
-13. [Observation Portal — Monitoring Stack](#13-observation-portal--monitoring-stack)
-14. [Key Lessons & Pitfalls](#14-key-lessons--pitfalls)
-15. [Upgrade Path & Scaling Advice](#15-upgrade-path--scaling-advice)
+10. [Key Lessons & Pitfalls](#14-key-lessons--pitfalls)
+11. [Upgrade Path & Scaling Advice](#15-upgrade-path--scaling-advice)
 
 ---
 
@@ -1174,7 +1170,7 @@ These are things that burned hours before being resolved — listed so you don't
 
 ---
 
-## 14. Upgrade Path & Scaling Advice
+## 11. Upgrade Path & Scaling Advice
 
 ### When You Have More VRAM (24+ GB)
 
