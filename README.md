@@ -208,8 +208,8 @@ See [VRAM Budget at 64K Context](./docs/optimization-guide.md#vram-budget-at-64k
 ## 🔗 Related Links
 
 - [Ollama](https://ollama.com)
-- [Hermes AI Agent](https://github.com/hermes-ai/hermes) *(or relevant Hermes repo)*
-- [SWE-Bench](https://github.com/aider-ai/aider/blob/main/docs/install.md)
+- [Hermes AI Agent](https://github.com/NousResearch/hermes-agent)
+- [Hermes Home Dashboard Plugin](https://github.com/albertocvrrbs/hermes-home-dashboard)
 
 ---
 
