@@ -1,1 +1,1386 @@
-x
+model:
+  default: gpt-oss:20b
+  provider: custom:ollama
+  base_url: http://localhost:11434/v1
+  timeout: 600
+  context_length: 65536
+  ollama_num_ctx: 65536
+  max_tokens: 32768
+providers:
+  moa:
+    name: local-moa
+    references:
+      - qwen3-14b-think
+      - ornith-9b
+    aggregator: gpt-oss-20b
+    max_context: 65536
+  ollama-launch:
+    api: http://localhost:11434/v1
+    default_model: gpt-oss-20b
+    models:
+      # ── Default · Agentic Tool Use · Shell · Research · Aux Tasks ──────────
+      # ollama pull gpt-oss-20b
+      # MoE 20B total / ~3.6B active params, MXFP4 quantized by OpenAI
+      # VRAM: ~12 GB weights + ~3.5 GB KV @ 64K q8_0 = ~15.5 GB (tight)
+      # Tool-calling: 23/25 benchmark — best tool-caller in the local roster
+      # Speed: ~42 t/s at 64K on RTX 5080 class; ~161 t/s at 8K context
+      # Replaces: gemma4-heretic-12b AS DEFAULT (heretic stays for fast/general)
+      # Replaces: deepseek-coder-v2-tools-160k (was ~27 GB — entirely in RAM)
+      - model: gpt-oss-20b
+        ollama_model: gpt-oss-20b
+        ollama_num_ctx: 65536
+        context_length: 65536
+        ollama_num_gpu: 999
+        ollama_num_batch: 512
+
+
+      # ── Fast General · Conversation · Light Reasoning · Aux Background ──────
+      # ollama create gemma4-heretic-12b -f ~/ollama-modelfiles/gemma4-heretic-12b.Modelfile
+      # (builds FROM igorls/gemma-4-12B-it-heretic-GGUF:Q4_K_M)
+      # VRAM: ~7.4 GB weights + ~3.0 GB KV @ 64K q8_0 = ~10.4 GB
+      # Tool-calling: weaker than gpt-oss-20b — route tool tasks to gpt-oss-20b
+      # Speed: fastest generative model in the roster; ideal for quick-turn work
+      # keep_alive: -1 — stays resident; drives all aux background slots:
+      #   compression, approval, mcp, skills_hub, triage, kanban, curator, etc.
+      # Replaces: gemma4-heretic-12b (same model, corrected context 128K→64K)
+      - model: gemma4-heretic-12b
+        ollama_model: gemma4-heretic-12b
+        ollama_num_ctx: 65536
+        context_length: 65536
+        ollama_num_gpu: 999
+        ollama_num_batch: 512
+        keep_alive: -1
+
+
+      # ── Deep Analysis · Security Research · Uncensored Reasoning ────────────
+      # ollama create qwythos-9b -f ~/ollama-modelfiles/qwythos-9b.Modelfile
+      # (builds FROM richardyoung/qwythos-9b-abliterated)
+      # Base: Qwen3.5-9B, post-trained on 500M+ Claude Mythos 5 + Fable 5 traces
+      # Abliterated via Heretic library (KL 0.0066) — mild, not aggressive
+      # VRAM: ~5.6 GB weights + ~3.0 GB KV @ 64K q8_0 = ~8.6 GB
+      # Reasoning model: emits <think>...</think> (Hermes parses automatically)
+      # Tool-calling: native function-calling — Hermes-compatible
+      # Temperature: 0.6 baked into Modelfile (recommended for Qwen3.5 base)
+      # Strength: technical depth on questions other models hedge or refuse
+      # Weakness: mediocre on hard one-shot coding — route coding to ornith-9b
+      # Default /localmoa drafter alongside qwen3-14b-think
+      - model: qwythos-9b
+        ollama_model: qwythos-9b
+        ollama_num_ctx: 65536
+        context_length: 65536
+        ollama_num_gpu: 999
+        ollama_num_batch: 512
+
+
+      # ── Planning · Architecture · Reasoning · Delegation · Replanning ───────
+      # ollama pull qwen3:14b
+      # VRAM: ~9 GB weights + ~3.0 GB KV @ 64K q8_0 = ~12 GB
+      # Supports /think and /no_think prompt suffixes
+      #   Default: /no_think for planning, delegation, triage
+      #   Use /think ONLY for architecture decisions with genuine trade-offs,
+      #   uncertain multi-step plans, or post-failure reflection
+      # Strong coder at 14B; covers planning before ornith/coder implementation
+      # Delegation orchestrator — subagent coordinator role
+      # Replanning pass when ornith-9b loops without progress
+      # Replaces: gemma4-planner-64k AND qwen30b-thinker-48k
+      #           (qwen30b was 18 GB weights alone — badly CPU-offloaded)
+      - model: qwen3-14b-think
+        ollama_model: qwen3:14b
+        ollama_num_ctx: 65536
+        context_length: 65536
+        ollama_num_gpu: 999
+        ollama_num_batch: 512
+
+
+      # ── Fast Coding · Boilerplate · Single-file · Quick Scripts ─────────────
+      # ollama pull qwen2.5-coder:7b
+      # VRAM: ~5 GB weights + ~3.0 GB KV @ 64K q8_0 = ~8 GB
+      # Lightest generative model in the roster — safe to load alongside any other
+      # Always first attempt for coding before escalating to ornith-9b or gpt-oss-20b
+      # Replaces: qwen2.5-coder-primary (same model, context corrected 65K→64K)
+      #           Zion-12b (removed — redundant with qwen3-14b-think for coding)
+      - model: qwen25-coder-7b
+        ollama_model: qwen2.5-coder:7b
+        ollama_num_ctx: 65536
+        context_length: 65536
+        ollama_num_gpu: 999
+        ollama_num_batch: 512
+
+
+      # ── Agentic Coding · SWE-Bench · Tool Loops · Terminal Workflows ────────
+      # ollama create ornith-9b -f ~/ollama-modelfiles/ornith-9b.Modelfile
+      # (builds FROM hf.co/bartowski/deepreinforce-ai_Ornith-1.0-9B-GGUF:Q4_K_M)
+      # Base: Qwen3.5-9B, post-trained with self-scaffolding RL (DeepReinforce, MIT)
+      # VRAM: ~5.6 GB weights + ~3.0 GB KV @ 64K q8_0 = ~8.6 GB
+      # SWE-Bench Verified: 69.4% — beats Gemma 4-31B (52%) at 3× the size
+      # Terminal-Bench 2.1: 43.1% — beats Gemma 4-31B (42.1%)
+      # Reasoning model: emits <think>...</think> (Hermes parses automatically)
+      # Tool-calling: native OpenAI-style tool_calls — fully Hermes-compatible
+      # Temperature: 0.6 baked into Modelfile (DeepReinforce recommendation)
+      # Escalation path: if same approach repeated twice → qwen3-14b-think replan
+      # Supplements: qwen25-coder-7b for agentic/multi-step; coder stays for quick scripts
+      - model: ornith-9b
+        ollama_model: ornith-9b
+        ollama_num_ctx: 65536
+        context_length: 65536
+        ollama_num_gpu: 999
+        ollama_num_batch: 512
+
+
+      # ── Embeddings · RAG · Semantic Search ──────────────────────────────────
+      # ollama pull nomic-embed-text:latest
+      # Embedding-only — never used for generation
+      # Note: Ollama excludes embed models from KV cache quantization
+      # Context set to Hermes minimum to satisfy startup check
+      - model: nomic-embed-text
+        ollama_model: nomic-embed-text:latest
+        ollama_num_ctx: 65536
+        context_length: 65536
+        ollama_num_gpu: 999
+        ollama_num_batch: 512
+
+
+      # ── Vision · OCR · Multimodal ───────────────────────────────────────────
+      # ollama pull qwen3-vl:8b
+      # VRAM: ~6 GB weights + ~3.0 GB KV @ 64K q8_0 = ~9 GB
+      # Sole vision model — all image inputs route here immediately, no exceptions
+      - model: qwen3-vl-8b
+        ollama_model: qwen3-vl:8b
+        ollama_num_ctx: 65536
+        context_length: 65536
+        ollama_num_gpu: 999
+        ollama_num_batch: 512
+
+
+    name: Ollama
+fallback_providers:
+  - provider: ollama-launch
+    model: gpt-oss-20b
+    timeout: 600
+    max_context: 65536
+  - provider: anthropic
+  # assumes you have set ANTHROPIC_API_KEY in your environment  
+    model: claude-haiku-4-5-20251001
+    timeout: 600
+    key_env: ANTHROPIC_API_KEY
+    alert_on_fail: true
+    max_context: 100000
+credential_pool_strategies: {}
+toolsets:
+  - hermes-cli
+  - telegram
+  - file
+  - browser
+  - clarify
+  - code_execution
+  - computer-use
+  - cronjob
+  - delegation
+  - image_gen
+  - memory
+  - messaging
+  - session_search
+  - skills
+  - terminal
+  - todo
+  - tts
+  - vision
+  - web
+max_concurrent_sessions: 5
+max_live_sessions: 16
+agent:
+  max_turns: 150
+  gateway_timeout: 600
+  restart_drain_timeout: 240
+  api_max_retries: 3
+  service_tier: ''
+  tool_use_enforcement: true
+  task_completion_guidance: true
+  parallel_tool_call_guidance: true
+  environment_probe: true
+  environment_hint: ''
+  coding_context: auto
+  verify_on_stop: false
+  gateway_timeout_warning: 1800
+  clarify_timeout: 300
+  gateway_notify_interval: 180
+  gateway_auto_continue_freshness: 300
+  image_input_mode: auto
+  disabled_toolsets: []
+  auto_clarify: false
+  auto_clarify_threshold: 0.75
+  gateway_auto_continue: true
+  verbose: false
+  reasoning_effort: medium
+  personalities:
+    helpful: |
+      You are a helpful, friendly AI assistant.
+
+
+    multimodel: |
+      You are Hermes, an adaptive multimodel orchestrator running on a local GPU
+      with [X] GB VRAM. All local models run at a 65,536-token context ceiling
+      (Hermes minimum). Choose the smallest competent model for every task —
+      escalate only when the task genuinely demands it.
+
+
+      Prefer one model per turn unless decomposition will materially improve quality,
+      accuracy, or speed.
+
+
+      ── EXPLICIT INVOCATION SHORTCUTS ────────────────────────────────────────────
+
+
+      These bypass normal routing — execute immediately without model selection logic:
+
+
+      /localmoa <question> [flags]   → Run local_moa CLI via <hermes-bin>/local_moa.py
+      @localmoa <question> [flags]   → Same as /localmoa
+        Parse any inline flags from the user message and pass to the CLI verbatim.
+        Supported flags: --references, --aggregator, --system, --temperature,
+                         --timeout, --num-ctx, --verbose
+        Default references: qwen3:14b ornith-9b
+        Default aggregator: gpt-oss-20b
+        Note: use Ollama pull tags, not Hermes aliases (qwen3:14b not qwen3-14b-think)
+
+
+      /moa <question>                → Invoke Hermes built-in MoA (local preset)
+      @moa <question>                → Same as /moa
+        Uses config.yaml moa.presets.local: qwen3-14b-think + ornith-9b → gpt-oss-20b
+
+
+      ── MODEL ROSTER ─────────────────────────────────────────────────────────────
+
+
+      1. gpt-oss-20b  [DEFAULT]
+         Ollama tag: gpt-oss-20b | Ctx: 64K | VRAM: ~15.5 GB at 64K
+         Use for:
+         - Any task that requires tool calls (file, terminal, shell, browser)
+         - Agentic loops and multi-step automated workflows
+         - Daily automation tasks and cron job orchestration
+         - Hard coding problems, refactoring, and codebase analysis
+         - Research, browsing, and web extraction
+         - Long-form summarization and documentation work
+         - Any task where context pressure is high (>60% of 64K used)
+         - All auxiliary background slots (compression, triage, approval, etc.)
+
+
+         Tool-calling score: 23/25 — strongest tool-caller in the roster.
+         This is the right model any time Hermes needs to call a tool or run
+         an agent loop. Gemma4-heretic is faster but weaker on tool use.
+
+
+      2. gemma4-heretic-12b
+         Ollama tag: gemma4-heretic-12b (custom build) | Ctx: 64K | VRAM: ~10.4 GB
+         Use for:
+         - Everyday conversation and quick questions
+         - Documentation reading and note-taking
+         - Lightweight reasoning and short explanations
+         - Personal knowledge and workflow assistance
+         - Tasks where NO tool calls are required
+
+
+         Note: This model has weaker tool-calling than gpt-oss-20b. If a task
+         needs to call any tool, route to gpt-oss-20b instead.
+         Advantage: leaves ~5 GB more VRAM free vs gpt-oss-20b — use it for
+         fast conversational turns to keep gpt-oss-20b unloaded until needed.
+
+
+      3. qwen3-14b-think
+         Ollama tag: qwen3:14b | Ctx: 64K | VRAM: ~12 GB at 64K
+         Use for:
+         - Structured planning and multi-phase decomposition
+         - Architecture and systems decisions
+         - Teaching, tutoring, and step-by-step explanation
+         - Ambiguous or underspecified requests needing clarification first
+         - Deep multi-step reasoning
+         - Coding tasks that need planning before implementation
+         - Delegation orchestration (subagent coordinator)
+         - Replanning pass when ornith-9b loops without progress
+
+
+         Thinking mode — Qwen3 supports /no_think and /think suffixes:
+           Default: /no_think for all planning, delegation, and triage.
+           Use /think ONLY for: architectural decisions with real trade-offs,
+           multi-step plans where the approach is genuinely uncertain, or
+           post-failure reflection. Append the suffix to the prompt.
+           Never activate /think for routine framing or simple decomposition.
+
+
+      4. qwythos-9b
+         Ollama tag: qwythos-9b (custom build) | Ctx: 64K | VRAM: ~8.6 GB at 64K
+         Base: Qwen3.5-9B, post-trained on 500M+ Claude Mythos 5 + Fable 5 traces
+         Abliterated via Heretic library (KL 0.0066) — mild, not aggressive
+         Use for:
+         - Deep technical analysis where other models hedge or refuse
+         - Security research, exploit mechanics, threat modeling
+         - Nuanced reasoning on sensitive or edge-case technical questions
+         - Long-form research synthesis requiring uncensored depth
+         - Tasks where gemma4-heretic-12b would hedge but qwen3-14b-think is overkill
+
+
+         Reasoning model: emits <think>...</think> before answer.
+         Hermes parses this automatically — do not surface raw thinking blocks.
+         Tool-calling: native function-calling supported — Hermes-compatible.
+         Temperature: 0.6 (baked into Modelfile — do not override unless testing).
+
+
+         Weakness: mediocre on hard one-shot coding tasks — not a coder.
+         Do NOT route coding tasks here; use ornith-9b or qwen25-coder-7b.
+
+
+      5. qwen25-coder-7b
+         Ollama tag: qwen2.5-coder:7b | Ctx: 64K | VRAM: ~8 GB at 64K
+         Use for:
+         - Structured code generation from clear specs
+         - Smaller coding tasks where speed matters
+         - Quick script and snippet generation
+         - Boilerplate, transforms, and tightly scoped edits
+         - Daily automation script edits and cron job code
+
+
+         Always try this before escalating to ornith-9b or gpt-oss-20b for coding.
+         Smallest VRAM footprint of any generative model — safe to load
+         alongside any other model in the roster.
+
+
+      6. ornith-9b
+         Ollama tag: ornith-9b (custom build) | Ctx: 64K | VRAM: ~8.6 GB at 64K
+         Base: Qwen 3.5, post-trained with self-scaffolding RL (DeepReinforce, MIT)
+         Use for:
+         - Agentic coding tasks: multi-step, tool-using, terminal-driven workflows
+         - SWE-Bench-class problems: real GitHub issue resolution, patch generation
+         - Self-directed code execution loops that require planning + execution together
+         - Tasks where qwen25-coder-7b completes the spec but cannot orchestrate steps
+         - Terminal-bench class tasks: script chains, file discovery, iterative fixes
+
+
+         Reasoning model: emits <think>...</think> before answer.
+         Hermes parses this automatically — do not surface raw thinking blocks.
+         Tool-calling: native OpenAI-style tool_calls — fully Hermes-compatible.
+         Temperature: 0.6 (baked into Modelfile — do not override unless testing).
+
+
+         Escalation note: at 9B scale this model can loop on very long-horizon
+         tasks. If it repeats the same approach twice without progress, escalate
+         to qwen3-14b-think for a replanning pass, then hand back.
+
+
+      7. nomic-embed-text
+         Ollama tag: nomic-embed-text:latest | VRAM: minimal
+         Use for: embeddings, semantic search, RAG, clustering, similarity.
+         Never use for generation.
+
+
+      8. qwen3-vl-8b
+         Ollama tag: qwen3-vl:8b | Ctx: 64K | VRAM: ~9 GB
+         Use for: image understanding, OCR, multimodal analysis, screenshots.
+         All image inputs route here immediately — no exceptions.
+
+
+      Auto-detection (apply in order, first match wins):
+
+
+      - Image input                                    → qwen3-vl-8b (immediate)
+      - Embeddings / RAG / semantic search             → nomic-embed-text
+      - Task requires ANY tool call or agent loop      → gpt-oss-20b
+      - Agentic coding: multi-step, tool loops         → ornith-9b
+      - Small self-contained code, no tools needed     → qwen25-coder-7b
+      - Security research / uncensored technical depth → qwythos-9b
+      - Planning, architecture, ambiguous reasoning    → qwen3-14b-think
+      - Pure conversation, no tools, quick-turn        → gemma4-heretic-12b
+      - Everything else                                → gpt-oss-20b
+
+
+      Context pressure rules (hard 64K ceiling):
+      - >50% used (~32K tokens): prefer gpt-oss-20b for new subtasks.
+        Avoid loading qwen3-vl-8b and gpt-oss-20b simultaneously (combined
+        ~24.5 GB — exceeds 16 GB GDDR7, will cause partial CPU offload).
+      - >75% used (~48K tokens): MUST route to gpt-oss-20b; trigger
+        compression immediately before spawning any new subagents.
+
+
+      VRAM co-loading guide (which models can run simultaneously):
+      - gemma4-heretic-12b + qwen25-coder-7b:  ~18 GB total → partial spill,
+        avoid if possible; fine for short tasks at reduced context
+      - gpt-oss-20b alone at 64K:              ~15.5 GB → fits, tight
+      - qwen3-14b-think alone:                 ~12 GB → comfortable
+      - ornith-9b alone:                       ~8.6 GB → comfortable
+      - qwythos-9b alone:                      ~8.6 GB → comfortable
+      - qwen25-coder-7b alone:                 ~8 GB → comfortable
+
+
+      Only one primary model should be active at a time on 16 GB GDDR7.
+      Ollama's keep_alive and model unloading handle this automatically when
+      KEEP_ALIVE is set; Hermes respects Ollama's unload behavior.
+
+
+      Coding escalation path (full):
+        qwen25-coder-7b → ornith-9b       (agentic or multi-step needed)
+        qwen25-coder-7b → gpt-oss-20b     (tool-heavy or hard problems)
+        qwen25-coder-7b → qwen3-14b-think  (planning-heavy or ambiguous)
+        ornith-9b       → qwen3-14b-think  (looping — replanning pass)
+        ornith-9b       → gpt-oss-20b     (large codebase or heavy tool use)
+
+
+      Thinking mode gate (qwen3-14b-think only):
+        Default /no_think. Activate /think ONLY for architecture decisions
+        with real trade-offs, genuinely uncertain plans, or post-failure
+        reflection. Never for routine framing or simple decomposition.
+
+
+      Model handoff visibility:
+      - If Hermes changes the active model for the current user turn, briefly say so
+        in the next assistant message.
+      - Keep it to one short sentence at the start or end of the reply.
+      - Format: "Switched to <model> for <reason>."
+      - Reasons allowed: tools, vision, planning, coding, agentic-coding,
+        security-research, context pressure, loop-detected, fallback.
+      - Do this only when the model actually changed from the prior assistant turn.
+      - Do not mention unchanged model selections.
+      - After announcing the switch once, continue normally.
+
+
+      Behavior:
+      - Default to the smallest competent model.
+      - Escalate only when needed.
+      - Use decomposition selectively, not by default.
+      - Prefer direct answers over elaborate orchestration when a single
+        model call is sufficient.
+      - Merge all sub-results into one coherent final answer.
+      - Do not mention model choices except for the required one-line handoff notice, or when explicitly asked.
+
+
+    teacher: |
+      You are a patient teacher. Explain concepts clearly with examples.
+
+
+    system_prompt: |
+      You are Hermes, an adaptive multimodel orchestrator running on a local GPU
+      with [X] GB VRAM. For each request, identify the primary task type and
+      route it to the smallest model that can complete it reliably. All local
+      models have a hard 65,536-token context ceiling.
+
+
+      When a task requires file, terminal, browser, or other tools, you MUST:
+      - CALL THE APPROPRIATE TOOLS DIRECTLY. Your output must be pure tool invocation;
+        do not include conversational filler before or after the call.
+      - NEVER write pseudo-code; if a command is needed, execute it via the tool
+        immediately.
+      - Continue using tools until the objective (file changed, process finished)
+        is achieved.
+      - Report results only AFTER success confirms. Do not describe intended actions.
+      - CRITICAL: This rule applies to EVERY model in the rotation regardless of its
+        inherent personality or style.
+        Exception: If the user explicitly says 'do NOT run this, just show me the
+        commands,' you must not call tools and may respond with plain text instead.
+
+
+      # [FALLOVER PROTOCOL] — redacted. Handles behavior when primary
+      # backend is unavailable and fallback provider takes over.
+
+      Prefer one model per turn unless decomposition will materially improve quality,
+      accuracy, or speed.
+
+
+      Use gpt-oss-20b for:
+      - Any task requiring tool calls (file, terminal, shell, browser, code_execution)
+      - Agentic and automated workflows — this is the primary agentic model
+      - Hard coding, refactoring, debugging, codebase analysis
+      - Research, web extraction, summarization at scale
+      - Long-form documentation and synthesis work
+      - Any task where context pressure exceeds 50% of 64K
+
+
+      Use gemma4-heretic-12b for:
+      - Everyday conversation and quick answers with NO tool calls
+      - Documentation reading and note-taking
+      - Lightweight reasoning and short explanations
+      - Personal knowledge and workflow assistance
+      - Do NOT route here if any tool call is required — use gpt-oss-20b
+
+
+      Use qwen3-14b-think for:
+      - Structured planning and decomposition before coding begins
+      - Architecture and systems decisions
+      - Teaching, tutoring, and guided walkthroughs
+      - Ambiguous or underspecified requests needing clarification
+      - Deep multi-step reasoning and synthesis
+      - Delegation orchestration as subagent coordinator
+      - Replanning pass when ornith-9b loops without progress
+      Append /no_think by default. Use /think only for hard architecture
+      decisions, genuinely uncertain plans, or post-failure reflection.
+
+
+      Use qwythos-9b for:
+      - Deep technical analysis where other models hedge or refuse
+      - Security research, exploit mechanics, threat modeling
+      - Nuanced reasoning on sensitive or edge-case technical questions
+      - Long-form research synthesis requiring uncensored depth
+      - Use when gemma4-heretic-12b would hedge but qwen3-14b-think is overkill
+      Reasoning model — <think> blocks handled automatically by Hermes.
+      Tool-calling: native function-calling, fully compatible.
+      Do NOT route coding tasks here — mediocre on hard one-shot code.
+
+
+      Use ornith-9b for:
+      - Agentic coding tasks that require planning + execution in a single loop
+      - SWE-Bench-class problems: real patch generation, issue resolution
+      - Terminal-driven multi-step coding workflows
+      - Tasks where qwen25-coder-7b finishes the spec but cannot orchestrate steps
+      Reasoning model — <think> blocks handled automatically by Hermes.
+      Tool-calling: native OpenAI-style tool_calls, fully compatible.
+      If ornith-9b repeats the same approach twice without progress,
+      escalate to qwen3-14b-think for a replanning pass, then return here.
+
+
+      Use qwen25-coder-7b for:
+      - Structured code generation from clear specs (no tool loops)
+      - Quick script and snippet generation
+      - Boilerplate, transforms, and tightly scoped edits
+      - First attempt on any small single-file coding task before escalating
+      Always try this before ornith-9b or gpt-oss-20b for coding.
+
+
+      Use nomic-embed-text for:
+      - Embeddings, search, semantic retrieval, clustering, similarity
+
+
+      Use qwen3-vl-8b for:
+      - Image tasks, OCR, multimodal analysis, screenshot understanding
+      - Route here immediately for any message containing an image
+
+
+      Routing rules (first match wins):
+      - Image input                                → qwen3-vl-8b (immediate)
+      - Embeddings / RAG / similarity              → nomic-embed-text
+      - Requires any tool call or agent loop       → gpt-oss-20b
+      - Agentic coding: multi-step, tool loops     → ornith-9b
+      - Small self-contained code, no tools        → qwen25-coder-7b
+      - Security research / uncensored depth       → qwythos-9b
+      - Planning / architecture / ambiguity        → qwen3-14b-think
+      - Pure conversation, no tools, quick-turn    → gemma4-heretic-12b
+      - Everything else                            → gpt-oss-20b
+
+
+      Transition contract:
+      - When routing selects a different model than the one used for the previous
+        assistant turn, emit a one-line handoff notice in the final user-facing reply.
+      - The notice must reflect the actual active model that produced the reply.
+      - If a fallback provider/model took over, say "Switched to <model> via fallback for <reason>."
+      - Reasons allowed: tools, vision, planning, coding, agentic-coding,
+        security-research, context pressure, loop-detected, fallback.
+
+
+      Context pressure rules (hard 64K ceiling on all models):
+      - >30% used (~19K tokens): prefer gpt-oss-20b for new subtasks.
+      - >50% used (~32K tokens): route to gpt-oss-20b; avoid loading a
+        second large model simultaneously.
+      - >75% used (~48K tokens): MUST route to gpt-oss-20b; trigger
+        compression immediately; do not spawn subagents until done.
+
+
+      VRAM note: only one primary model should be resident at a time on
+      16 GB GDDR7. Ollama unloads models automatically based on keep_alive.
+      Do not attempt to run gpt-oss-20b and gemma4-heretic-12b simultaneously
+      for sustained workloads — combined weight footprint exceeds VRAM.
+      ornith-9b (~8.6 GB), qwythos-9b (~8.6 GB), and qwen25-coder-7b (~8 GB)
+      are the lightest generative models — prefer them when VRAM headroom is tight.
+
+
+      Coding escalation path (full):
+        qwen25-coder-7b → ornith-9b       (agentic or multi-step needed)
+        qwen25-coder-7b → gpt-oss-20b     (tool-heavy or hard problems)
+        qwen25-coder-7b → qwen3-14b-think  (planning-heavy or ambiguous)
+        ornith-9b       → qwen3-14b-think  (looping — replanning pass)
+        ornith-9b       → gpt-oss-20b     (large codebase or heavy tool use)
+
+
+      Always prefer the smallest competent model.
+      Escalate only when necessary.
+      Use decomposition selectively, not by default.
+      Prefer direct answers over elaborate orchestration when a single model is enough.
+      Merge sub-agent results into one coherent final answer.
+
+
+      Model visibility rule:
+      - Do not mention model choices by default.
+      - Exception: if the active model changed for this turn, briefly acknowledge it once
+        using the format "Switched to <model> for <reason>."
+      - Do not include long internal routing explanations unless the user asks.
+
+terminal:
+  backend: local
+  modal_mode: auto
+  cwd: .
+  timeout: 600
+  daemon_term_grace_seconds: 2
+  env_passthrough: []
+  home_mode: auto
+  shell_init_files: []
+  auto_source_bashrc: true
+  docker_image: nikolaik/python-nodejs:python3.11-nodejs20
+  docker_forward_env: []
+  docker_env: {}
+  singularity_image: docker://nikolaik/python-nodejs:python3.11-nodejs20
+  modal_image: nikolaik/python-nodejs:python3.11-nodejs20
+  daytona_image: nikolaik/python-nodejs:python3.11-nodejs20
+  container_cpu: 1
+  container_memory: 16384
+  container_disk: 10240
+  container_persistent: true
+  docker_volumes: []
+  docker_mount_cwd_to_workspace: false
+  docker_extra_args: []
+  docker_run_as_host_user: false
+  persistent_shell: true
+  lifetime_seconds: 300
+web:
+  backend: firecrawl
+  search_backend: firecrawl
+  extract_backend: firecrawl
+  use_gateway: true
+browser:
+  inactivity_timeout: 120
+  command_timeout: 30
+  record_sessions: false
+  allow_private_urls: false
+  engine: chrome
+  auto_local_for_private_urls: true
+  cdp_url: http://localhost:PORT
+  dialog_policy: must_respond
+  dialog_timeout_s: 300
+  camofox:
+    managed_persistence: true
+    user_id: user-12345
+    session_key: session-abc123
+    adopt_existing_tab: false
+    rewrite_loopback_urls: false
+    loopback_host_alias: host.docker.internal
+  cloud_provider: browser-use
+  use_gateway: true
+checkpoints:
+  enabled: true
+  max_snapshots: 20
+  max_total_size_mb: 500
+  max_file_size_mb: 10
+  auto_prune: true
+  retention_days: 7
+  delete_orphans: true
+  min_interval_hours: 24
+context_file_max_chars: {}
+file_read_max_chars: 50000
+mcp_discovery_timeout: 1.5
+tool_output:
+  max_bytes: 200000
+  max_lines: 8000
+  max_line_length: 4000
+tool_loop_guardrails:
+  warnings_enabled: true
+  hard_stop_enabled: false
+  warn_after:
+    exact_failure: 3
+    same_tool_failure: 5
+    idempotent_no_progress: 3
+  hard_stop_after:
+    exact_failure: 7
+    same_tool_failure: 10
+    idempotent_no_progress: 7
+compression:
+  enabled: true
+  threshold: 0.25
+  target_ratio: 0.35
+  protect_last_n: 12
+  hygiene_hard_message_limit: 250
+  protect_first_n: 5
+  abort_on_summary_failure: true
+  codex_gpt55_autoraise: true
+  in_place: false
+  threshold_pct: 0.3
+  protect_tool_calls: true
+kanban:
+  dispatch_in_gateway: true
+  dispatch_interval_seconds: 60
+  failure_limit: 2
+  worker_log_rotate_bytes: 2097152
+  worker_log_backup_count: 1
+  orchestrator_profile: ''
+  default_assignee: ''
+  max_in_progress_per_profile: 5
+  auto_decompose: true
+  auto_decompose_per_tick: 3
+  dispatch_stale_timeout_seconds: 3600
+prompt_caching:
+  cache_ttl: 5m
+openrouter:
+  response_cache: true
+  response_cache_ttl: 300
+  min_coding_score: 0.6
+bedrock:
+  region: ''
+  discovery:
+    enabled: true
+    provider_filter: []
+    refresh_interval: 3600
+  guardrail:
+    guardrail_identifier: ''
+    guardrail_version: ''
+    stream_processing_mode: async
+    trace: disabled
+auxiliary:
+  vision:
+    provider: ollama-launch
+    model: qwen3-vl-8b
+    base_url: ''
+    api_key: ''
+    timeout: 120
+    extra_body: {}
+    download_timeout: 30
+  web_extract:
+    provider: ollama-launch
+    model: gpt-oss-20b
+    base_url: ''
+    api_key: ''
+    timeout: 360
+    extra_body: {}
+  compression:
+    provider: ollama-launch
+    model: gemma4-heretic-12b
+    base_url: ''
+    api_key: ''
+    timeout: 120
+    extra_body: {}
+  skills_hub:
+    provider: ollama-launch
+    model: gemma4-heretic-12b
+    base_url: ''
+    api_key: ''
+    timeout: 30
+    extra_body: {}
+  approval:
+    provider: ollama-launch
+    model: gemma4-heretic-12b
+    base_url: ''
+    api_key: ''
+    timeout: 30
+    extra_body: {}
+  mcp:
+    provider: ollama-launch
+    model: gemma4-heretic-12b
+    base_url: ''
+    api_key: ''
+    timeout: 30
+    extra_body: {}
+  title_generation:
+    provider: ollama-launch
+    model: gemma4-heretic-12b
+    base_url: ''
+    api_key: ''
+    timeout: 30
+    extra_body: {}
+    language: ''
+  tts_audio_tags:
+    provider: auto
+    model: ''
+    base_url: ''
+    api_key: ''
+    timeout: 30
+    extra_body: {}
+  triage_specifier:
+    provider: ollama-launch
+    model: gemma4-heretic-12b
+    base_url: ''
+    api_key: ''
+    timeout: 120
+    extra_body: {}
+  kanban_decomposer:
+    provider: ollama-launch
+    model: gemma4-heretic-12b
+    base_url: ''
+    api_key: ''
+    timeout: 180
+    extra_body: {}
+  profile_describer:
+    provider: ollama-launch
+    model: gemma4-heretic-12b
+    base_url: ''
+    api_key: ''
+    timeout: 60
+    extra_body: {}
+  curator:
+    provider: ollama-launch
+    model: gemma4-heretic-12b
+    base_url: ''
+    api_key: ''
+    timeout: 600
+    extra_body: {}
+  monitor:
+    provider: ollama-launch
+    model: gemma4-heretic-12b
+    base_url: ''
+    api_key: ''
+    timeout: 60
+    extra_body: {}
+  background_review:
+    provider: ollama-launch
+    model: gemma4-heretic-12b
+    base_url: ''
+    api_key: ''
+    timeout: 120
+    extra_body: {}
+  moa_reference:
+    provider: ollama-launch
+    model: qwen3-14b-think
+    base_url: ''
+    api_key: ''
+    timeout: 600
+    extra_body: {}
+  moa_aggregator:
+    provider: ollama-launch
+    model: gpt-oss-20b
+    base_url: ''
+    api_key: ''
+    timeout: 600
+    extra_body: {}
+display:
+  compact: true
+  personality: multimodel
+  resume_display: full
+  resume_exchanges: 10
+  resume_max_user_chars: 300
+  resume_max_assistant_chars: 400
+  resume_max_assistant_lines: 5
+  resume_skip_tool_only: true
+  busy_input_mode: queue
+  interface: cli
+  tui_auto_resume_recent: false
+  tui_agents_nudge: true
+  bell_on_complete: false
+  show_reasoning: false
+  reasoning_full: false
+  memory_notifications: 'on'
+  streaming: true
+  timestamps: false
+  final_response_markdown: strip
+  persistent_output: true
+  persistent_output_max_lines: 2000
+  persist_prompts: true
+  inline_diffs: true
+  file_mutation_verifier: true
+  credits_notices: true
+  turn_completion_explainer: true
+  show_cost: true
+  skin: default
+  language: en
+  tui_status_indicator: kaomoji
+  cli_refresh_interval: 1
+  user_message_preview:
+    first_lines: 2
+    last_lines: 2
+  interim_assistant_messages: true
+  tool_progress_command: false
+  tool_progress_overrides: {}
+  tool_preview_length: 50
+  tool_progress_grouping: accumulate
+  reasoning_style: code
+  ephemeral_system_ttl: 0
+  platforms:
+    telegram:
+      streaming: true
+    discord:
+      streaming: true
+  runtime_footer:
+    enabled: true
+    fields:
+      - model
+      - context_pct
+      - cwd
+  copy_shortcut: never
+  pet:
+    enabled: false
+    slug: ''
+    render_mode: auto
+    scale: 0.33
+    unicode_cols: 0
+  tool_progress: all
+  cleanup_progress: false
+  long_running_notifications: true
+  busy_ack_detail: true
+  background_process_notifications: all
+dashboard:
+  theme: mono
+  show_token_analytics: true
+  oauth:
+    client_id: ''
+    portal_url: ''
+  basic_auth:
+    username: ''
+    password_hash: ''
+    password: ''
+    secret: ''
+    session_ttl_seconds: 0
+  drain_auth:
+    scope: drain
+    min_secret_chars: 43
+  public_url: ''
+  font: space-mono
+privacy:
+  redact_pii: true
+tts:
+  provider: edge
+  edge:
+    voice: en-US-AriaNeural
+  elevenlabs:
+    voice_id: pNInz6obpgDQGcFmaJgB
+    model_id: eleven_multilingual_v2
+  openai:
+    model: gpt-4o-mini-tts
+    voice: alloy
+  gemini:
+    model: gemini-2.5-flash-preview-tts
+    voice: Kore
+    audio_tags: false
+    persona_prompt_file: ''
+  xai:
+    voice_id: eve
+    language: en
+    sample_rate: 24000
+    bit_rate: 128000
+  mistral:
+    model: voxtral-mini-tts-2603
+    voice_id: c69964a6-ab8b-4f8a-9465-ec0925096ec8
+  neutts:
+    ref_audio: ''
+    ref_text: ''
+    model: neuphonic/neutts-air-q4-gguf
+    device: cpu
+  piper:
+    voice: en_US-lessac-medium
+  use_gateway: true
+stt:
+  enabled: true
+  provider: local
+  local:
+    model: base
+    language: ''
+  openai:
+    model: whisper-1
+  mistral:
+    model: voxtral-mini-latest
+  elevenlabs:
+    model_id: scribe_v2
+    language_code: ''
+    tag_audio_events: false
+    diarize: false
+voice:
+  record_key: ctrl+b
+  max_recording_seconds: 120
+  auto_tts: false
+  beep_enabled: true
+  silence_threshold: 200
+  silence_duration: 3
+human_delay:
+  mode: 'off'
+  min_ms: 800
+  max_ms: 2500
+context:
+  engine: compressor
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  write_approval: false
+  memory_char_limit: 4000
+  user_char_limit: 2000
+  provider: ''
+  nudge_interval: 10
+  flush_min_turns: 10
+delegation:
+  model: qwen3-14b-think
+  provider: ollama-launch
+  base_url: ''
+  api_key: ''
+  api_mode: ''
+  inherit_mcp_toolsets: true
+  max_iterations: 20
+  child_timeout_seconds: 600
+  reasoning_effort: medium
+  max_concurrent_children: 3
+  max_async_children: 3
+  max_spawn_depth: 2
+  orchestrator_enabled: true
+  subagent_auto_approve: false
+  context_length: 65536
+  ollama_num_ctx: 65536
+prefill_messages_file: ''
+goals:
+  max_turns: 20
+moa:
+  default_preset: local
+  active_preset: ''
+  presets:
+
+    # ── Local MoA — zero cost, fully offline ──────────────────────────
+    # reference_models draft in parallel; aggregator synthesizes.
+    # qwen3-14b-think: planning/reasoning perspective
+    # ornith-9b:       agentic/analytical perspective
+    # gpt-oss-20b:     aggregator — best synthesis + tool-calling in roster
+    # Combined VRAM: drafters run sequentially (Ollama unloads between),
+    # so peak is ~12 GB (qwen3-14b-think) + ~15.5 GB (aggregator) — not simultaneous.
+    local:
+      reference_models:
+        - provider: ollama-launch
+          model: qwen3-14b-think
+        - provider: ollama-launch
+          model: ornith-9b
+      aggregator:
+        provider: ollama-launch
+        model: gpt-oss-20b
+      reference_temperature: 0.6
+      aggregator_temperature: 0.4
+      max_tokens: 32768
+      enabled: false   # enable per-session with /moa or @moa prefix — not default
+
+    # ── Cloud MoA — high quality, high cost ──────────────────────────
+    # CAUTION: every MoA call hits openai-codex + openrouter simultaneously.
+    # gpt-5.5 + deepseek-v4-pro as drafters; claude-opus-4.8 as aggregator.
+    # Only enable when local models demonstrably cannot handle the task.
+    # Requires: OPENROUTER_API_KEY env var set.
+    cloud:
+      reference_models:
+        - provider: openai-codex
+          model: gpt-5.5
+        - provider: openrouter
+          model: deepseek/deepseek-v4-pro
+      aggregator:
+        provider: openrouter
+        model: anthropic/claude-opus-4.8
+      reference_temperature: 0.6
+      aggregator_temperature: 0.4
+      max_tokens: 32768
+      enabled: false   # CAUTION: expensive — do not enable without intent
+skills:
+  external_dirs: []
+  template_vars: true
+  inline_shell: false
+  inline_shell_timeout: 30
+  guard_agent_created: false
+  write_approval: false
+  creation_nudge_interval: 15
+  disabled:
+    - claude-code
+    - codex
+    - computer-use
+    - mix-of-agents
+    - opencode
+    - yuanbao
+curator:
+  enabled: true
+  interval_hours: 168
+  min_idle_hours: 2
+  stale_after_days: 14
+  archive_after_days: 60
+  consolidate: false
+  prune_builtins: true
+  backup:
+    enabled: true
+    keep: 5
+honcho: {}
+timezone: America/New_York
+slack:
+  require_mention: true
+  free_response_channels: ''
+  allowed_channels: ''
+  channel_prompts: {}
+discord:
+  require_mention: true
+  free_response_channels: ''
+  allowed_channels: ''
+  auto_thread: true
+  thread_require_mention: false
+  history_backfill: true
+  history_backfill_limit: 50
+  reactions: true
+  channel_prompts: {}
+  dm_role_auth_guild: ''
+  server_actions: ''
+  allow_any_attachment: false
+  max_attachment_bytes: 33554432
+  voice_fx:
+    enabled: false
+    ambient_enabled: true
+    ambient_path: ''
+    ambient_gain: 0.18
+    duck_gain: 0.06
+    speech_gain: 1
+    ack_enabled: true
+    ack_phrases:
+      - Let me look into that.
+      - One moment.
+      - Checking on that now.
+      - Give me a sec.
+      - On it.
+whatsapp: {}
+telegram:
+  reactions: false
+  channel_prompts: {}
+  allowed_chats:  0 # using telegram, grab your telegram chat id
+  extra:
+    rich_messages: true
+    rich_drafts: false
+mattermost:
+  require_mention: true
+  free_response_channels: ''
+  allowed_channels: ''
+  channel_prompts: {}
+matrix:
+  require_mention: true
+  free_response_rooms: ''
+  allowed_rooms: ''
+approvals:
+  mode: tool # replace with appropriate mode
+  timeout: 60
+  cron_mode: deny
+  mcp_reload_confirm: true
+  destructive_slash_confirm: true
+  background_review: false
+command_allowlist:
+  - ls
+  - cp
+  - cat
+  - shell command via -c/-lc flag
+  - head
+  - cd
+  - script execution via -e/-c flag
+  - pwd
+  - touch
+  - echo
+  - execute_code
+  - mkdir
+  - tail
+  - grep
+quick_commands: {}
+platform_hints: {}
+hooks: {}
+hooks_auto_accept: false
+security:
+  allow_private_urls: false
+  redact_secrets: true
+  tirith_enabled: true
+  tirith_path: tirith
+  tirith_timeout: 10
+  tirith_fail_open: true
+  website_blocklist:
+    enabled: false
+    domains: []
+    shared_files: []
+  acked_advisories: []
+  allow_lazy_installs: false
+cron:
+  provider: ''
+  chronos:
+    portal_url: https://portal.nousresearch.com
+    callback_url: ''
+    expected_audience: ''
+    nas_jwks_url: ''
+  wrap_response: true
+  mirror_delivery: false
+  max_parallel_jobs: 5
+  output_retention: 50
+code_execution:
+  mode: project
+  timeout: 600
+  max_tool_calls: 100
+tools:
+  tool_search:
+    enabled: auto
+    threshold_pct: 15
+    search_default_limit: 5
+    max_search_limit: 10
+logging:
+  level: INFO
+  max_size_mb: 10
+  backup_count: 3
+model_catalog:
+  enabled: true
+  url: https://hermes-agent.nousresearch.com/docs/api/model-catalog.json
+  ttl_hours: 1
+  providers: {}
+network:
+  force_ipv4: false
+gateway:
+  scale_to_zero:
+    idle_timeout_minutes: 5
+  message_timestamps:
+    enabled: false
+  max_inbound_media_bytes: 134217728
+  strict: false
+  media_delivery_allow_dirs: []
+  trust_recent_files: true
+  trust_recent_files_seconds: 1800
+  api_server:
+    max_concurrent_runs: 10
+streaming:
+  enabled: true
+  transport: auto
+  edit_interval: 0.2
+  buffer_threshold: 5
+  cursor: ' ▉'
+  fresh_final_after_seconds: 60
+sessions:
+  auto_prune: true
+  retention_days: 30
+  vacuum_after_prune: true
+  min_interval_hours: 24
+  write_json_snapshots: false
+onboarding:
+  seen:
+    busy_input_prompt: true
+    tool_progress_prompt: true
+  profile_build: ask
+updates:
+  pre_update_backup: true
+  backup_keep: 5
+  non_interactive_local_changes: stash
+lsp:
+  enabled: true
+  wait_mode: document
+  wait_timeout: 10
+  install_strategy: auto
+  servers: {}
+x_search:
+  model: grok-4.20-reasoning
+  timeout_seconds: 180
+  retries: 2
+secrets:
+  bitwarden:
+    enabled: false
+    access_token_env: BWS_ACCESS_TOKEN
+    project_id: ''
+    cache_ttl_seconds: 300
+    override_existing: true
+    auto_install: true
+    server_url: ''
+paste_collapse_threshold: 10
+paste_collapse_threshold_fallback: 10
+paste_collapse_char_threshold: 5000
+computer_use:
+  cua_telemetry: false
+_config_version: 31
+delegate:
+  multimodel:
+    enabled: true
+    detection_threshold: 0.5
+    max_retry_context: 3
+session_reset:
+  mode: none
+  idle_minutes: 1440
+  at_hour: 4
+group_sessions_per_user: true
+platform_toolsets:
+  cli:
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - memory
+    - messaging
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - vision
+    - web
+  telegram:
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - memory
+    - messaging
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - vision
+    - web
+  discord:
+    - hermes-discord
+  whatsapp:
+    - hermes-whatsapp
+  slack:
+    - hermes-slack
+  signal:
+    - hermes-signal
+  homeassistant:
+    - hermes-homeassistant
+  qqbot:
+    - hermes-qqbot
+  yuanbao:
+    - hermes-yuanbao
+  teams:
+    - hermes-teams
+  google_chat:
+    - hermes-google_chat
+image_gen:
+  use_gateway: true
+known_plugin_toolsets:
+  cli:
+    - spotify
+  telegram:
+    - spotify
+custom_providers: []
+plugins:
+  enabled:
+    - anthropic-provider
+    - custom-provider
+    - discord-platform
+    - disk-cleanup
+    - email-platform
+    - gemini-provider
+    - google_meet
+    - home-dashboard
+    - ollama-cloud-provider
+    - openai
+    - openai-codex
+    - openrouter-provider
+    - security-guidance
+    - telegram-platform
+    - web-ddgs
+  disabled:
+    - web-brave-free
+platforms:
+  email:
+    enabled: false
+
+# ── Fallback Model ────────────────────────────────────────────────────
+# Automatic provider failover when primary is unavailable.
+# Uncomment and configure to enable. Triggers on rate limits (429),
+# overload (529), service errors (503), or connection failures.
+#
+# Supported providers:
+#   openrouter   (OPENROUTER_API_KEY)  — routes to any model
+#   openai-codex (OAuth — hermes auth) — OpenAI Codex
+#   nous         (OAuth — hermes auth) — Nous Portal
+#   zai          (ZAI_API_KEY)         — Z.AI / GLM
+#   kimi-coding  (KIMI_API_KEY)        — Kimi / Moonshot
+#   kimi-coding-cn (KIMI_CN_API_KEY)   — Kimi / Moonshot (China)
+#   minimax      (MINIMAX_API_KEY)     — MiniMax
+#   minimax-cn   (MINIMAX_CN_API_KEY)  — MiniMax (China)
+#   bedrock      (AWS IAM / boto3)     — AWS Bedrock (Converse API)
+#
+# For custom OpenAI-compatible endpoints, add base_url and key_env.
+#
+# fallback_model:
+#   provider: openrouter
+#   model: anthropic/claude-sonnet-4
+
