@@ -357,13 +357,6 @@ model:
   ollama_num_ctx: 65536
   max_tokens: 32768
 providers:
-  moa:
-    name: local-moa
-    references:
-      - qwen3-14b-think
-      - ornith-9b
-    aggregator: gpt-oss-20b
-    max_context: 65536
   ollama-launch:
     api: http://localhost:11434/v1
     default_model: gpt-oss-20b
@@ -413,7 +406,6 @@ providers:
       # Temperature: 0.6 baked into Modelfile (recommended for Qwen3.5 base)
       # Strength: technical depth on questions other models hedge or refuse
       # Weakness: mediocre on hard one-shot coding — route coding to ornith-9b
-      # Default /localmoa drafter alongside qwen3-14b-think
       - model: qwythos-9b
         ollama_model: qwythos-9b
         ollama_num_ctx: 65536
