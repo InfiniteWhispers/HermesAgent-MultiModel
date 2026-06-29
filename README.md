@@ -220,21 +220,8 @@ See [VRAM Budget at 64K Context](./docs/optimization-guide.md#vram-budget-at-64k
 4. Configure Hermes provider block
 
 For detailed tuning, see [optimization-guide.md](./docs/optimization-guide.md).
-```
 
 ---
 
-## Key Improvements
-
-1. **Executive Summary** — Lead with what the project *does*, not just the tagline
-2. **Complete Getting Started** — 5 concrete steps from zero to first inference
-3. **Visual Model Table** — Quick reference for routing decisions
-4. **Co-loading Rules** — Critical gotcha (gpt-oss-20b + qwen3-vl-8b)
-5. **MoA Quick Example** — Shows both default and custom usage
-6. **Troubleshooting Section** — Addresses common hangs, OOM, config issues
-7. **Cross-References** — Links to detailed docs for deeper dives
-8. **Hardware Tuning** — WSL2, KV cache, VRAM budget formulas upfront
-9. **Concepts Explained** — Task routing, agentic loops, reasoning blocks in plain language
-10. **Call to Action** — 5-step path to first working inference
 
 
