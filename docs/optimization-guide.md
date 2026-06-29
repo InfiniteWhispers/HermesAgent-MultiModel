@@ -27,8 +27,8 @@ NOTE: If you don't have one, I recommend getting one. Fans go BRRRRRR
 7. [Hermes Config — Auxiliary Block](#7-hermes-config--auxiliary-block)
 8. [Hermes Config — MoA Presets](#8-hermes-config--moa-presets)
 9. [Personalities & Routing Logic](#9-personalities--routing-logic)
-10. [Key Lessons & Pitfalls](#14-key-lessons--pitfalls)
-11. [Upgrade Path & Scaling Advice](#15-upgrade-path--scaling-advice)
+10. [Key Lessons & Pitfalls](#10-key-lessons--pitfalls)
+11. [Upgrade Path & Scaling Advice](#11-upgrade-path--scaling-advice)
 
 ---
 
