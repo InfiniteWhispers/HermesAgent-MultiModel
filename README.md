@@ -36,7 +36,13 @@ HermesAgent-MultiModel implements a **local-first approach** to multi-model infe
 
 ### 2. **Install Ollama**
 ```bash
-# inspect first: curl -fsSL https://ollama.com/install.sh | less
+# Inspect before running (recommended):
+curl -fsSL https://ollama.com/install.sh | less
+```
+
+```bash
+# Install:
+curl -fsSL https://ollama.com/install.sh | sh
 ```
 
 ### 3. **Pull & Build Models**
@@ -45,8 +51,7 @@ See the full [Ollama Pull Reference](./docs/optimization-guide.md#5-ollama-pull-
 
 ```bash
 # Direct pulls (registry)
-ollama pull gpt-oss:20b
-ollama pull qwen3:14b
+
 ollama pull qwen2.5-coder:7b
 ollama pull nomic-embed-text:latest
 ollama pull qwen3-vl:8b
@@ -55,11 +60,18 @@ ollama pull qwen3-vl:8b
 ollama pull igorls/gemma-4-12B-it-heretic-GGUF:Q4_K_M
 ollama create gemma4-heretic-12b -f ~/ollama-modelfiles/gemma4-heretic-12b.Modelfile
 
+ollama pull gpt-oss:20b
+ollama create gpt-oss-20b -f ~/ollama-modelfiles/gpt-oss-20b.Modelfile
+
 ollama pull richardyoung/qwythos-9b-abliterated
 ollama create qwythos-9b -f ~/ollama-modelfiles/qwythos-9b.Modelfile
 
 ollama pull hf.co/bartowski/deepreinforce-ai_Ornith-1.0-9B-GGUF:Q4_K_M
 ollama create ornith-9b -f ~/ollama-modelfiles/ornith-9b.Modelfile
+
+# qwen3-14b-think alias (required — Hermes uses alias, not raw qwen3:14b tag)
+ollama pull qwen3:14b
+ollama create qwen3-14b-think -f ~/ollama-modelfiles/qwen3-14b-think.Modelfile
 
 # Verify
 ollama list
@@ -68,18 +80,6 @@ ollama list
 ### 4. **Configure Hermes**
 
 Edit `~/.hermes/config.yaml` with your model provider block. Full reference: [Hermes Config — Providers Block](./docs/optimization-guide.md#6-hermes-config--providers-block).
-
-**Essential settings** (paste into providers block):
-```yaml
-model:
-  default: gpt-oss-20b
-  provider: custom:ollama
-  base_url: http://localhost:11434/v1
-  timeout: 600
-  context_length: 65536
-  max_tokens: 32768
-  ollama_num_ctx: 65536
-```
 
 ### 5. **Tune Ollama for Performance**
 
@@ -122,7 +122,7 @@ See [Ollama Installation & Systemd Tuning](./docs/optimization-guide.md#2-ollama
 Query multiple models in parallel, then synthesize via an aggregator:
 
 **Default setup:**
-- References: `qwen3:14b`, `ornith-9b`  
+- References: `qwen3-14b-think`, `ornith-9b`
 - Aggregator: `gpt-oss-20b`
 
 ## 🛠️ Advanced Configuration
@@ -209,7 +209,7 @@ See [VRAM Budget at 64K Context](./docs/optimization-guide.md#vram-budget-at-64k
 ## 🔗 Related Links
 
 - [Ollama](https://ollama.com)
-- [Hermes AI Agent](https://github.com/NousResearch/hermes-agent)
+- [Hermes AI Agent - NousResearch Repo](https://github.com/NousResearch/hermes-agent)
 - [Hermes Home Dashboard Plugin](https://github.com/albertocvrrbs/hermes-home-dashboard)
 
 ---
