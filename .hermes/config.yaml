@@ -814,6 +814,14 @@ auxiliary:
     api_key: ''
     timeout: 600
     extra_body: {}
+  moa_reference_2:
+    provider: ollama-launch
+    model: ornith-9b
+    timeout: 600
+    base_url: ''
+    api_key: ''
+    timeout: 600
+    extra_body: {}    
   moa_aggregator:
     provider: ollama-launch
     model: gpt-oss-20b
