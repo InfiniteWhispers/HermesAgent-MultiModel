@@ -631,8 +631,8 @@ browser:
   dialog_timeout_s: 300
   camofox:
     managed_persistence: true
-    user_id: user-12345
-    session_key: session-abc123
+    user_id: user-12345       # replace with your camofox user_id
+    session_key: session-abc123  # replace with your camofox session_key
     adopt_existing_tab: false
     rewrite_loopback_urls: false
     loopback_host_alias: host.docker.internal
@@ -1102,7 +1102,8 @@ whatsapp: {}
 telegram:
   reactions: false
   channel_prompts: {}
-  allowed_chats:  0 # using telegram, grab your telegram chat id
+  allowed_chats: 0  # REPLACE with your Telegram chat ID (e.g. 123456789)
+                    # Get yours: message @userinfobot on Telegram
   extra:
     rich_messages: true
     rich_drafts: false
