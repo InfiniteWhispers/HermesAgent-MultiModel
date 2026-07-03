@@ -89,7 +89,13 @@ Practical estimates for this roster at `q8_0` KV:
 ### Install Ollama
 
 ```bash
-# inspect first: curl -fsSL https://ollama.com/install.sh | less
+# Inspect before running (recommended):
+curl -fsSL https://ollama.com/install.sh | less
+```
+
+```bash
+# Install:
+curl -fsSL https://ollama.com/install.sh | sh
 ```
 
 ### Critical Environment Variables
@@ -303,6 +309,12 @@ PARAMETER num_predict -1
 PARAMETER temperature 0.6
 ```
 
+Build:
+```bash
+ollama pull hf.co/bartowski/deepreinforce-ai_Ornith-1.0-9B-GGUF:Q4_K_M
+ollama create ornith-9b -f ~/ollama-modelfiles/ornith-9b.Modelfile
+```
+
 > **Ornith pull workaround — context deadline timeout:** The HF GGUF manifest
 > for Ornith is large (~481 MB metadata). Pulling directly in `ollama create` can
 > hit the 30-second context deadline. Workaround: pull blobs first, then create.
@@ -315,19 +327,38 @@ ollama pull hf.co/bartowski/deepreinforce-ai_Ornith-1.0-9B-GGUF:Q4_K_M
 ollama create ornith-9b -f ~/ollama-modelfiles/ornith-9b.Modelfile
 ```
 
+### qwen3-14b-think.Modelfile
+
+```dockerfile
+# ~/ollama-modelfiles/qwen3-14b-think.Modelfile
+FROM qwen3:14b
+
+PARAMETER num_ctx     65536
+PARAMETER num_gpu     999
+PARAMETER num_batch   512
+PARAMETER num_predict -1
+```
+
+Build:
+```bash
+ollama pull qwen3:14b
+ollama create qwen3-14b-think -f ~/ollama-modelfiles/qwen3-14b-think.Modelfile
+```
+
 ---
 
 ## 5. Ollama Pull Reference
 
 ```bash
 # Direct pulls (no Modelfile needed)
-ollama pull gpt-oss:20b              # then create gpt-oss-20b alias via Modelfile
-ollama pull qwen3:14b                # qwen3-14b-think alias
 ollama pull qwen2.5-coder:7b         # qwen25-coder-7b alias
 ollama pull nomic-embed-text:latest  # embeddings
 ollama pull qwen3-vl:8b              # vision/OCR
 
 # Custom builds (pull base, then create)
+ollama pull gpt-oss:20b
+ollama create gpt-oss-20b -f ~/ollama-modelfiles/gpt-oss-20b.Modelfile
+
 ollama pull igorls/gemma-4-12B-it-heretic-GGUF:Q4_K_M
 ollama create gemma4-heretic-12b -f ~/ollama-modelfiles/gemma4-heretic-12b.Modelfile
 
@@ -336,6 +367,9 @@ ollama create qwythos-9b -f ~/ollama-modelfiles/qwythos-9b.Modelfile
 
 ollama pull hf.co/bartowski/deepreinforce-ai_Ornith-1.0-9B-GGUF:Q4_K_M
 ollama create ornith-9b -f ~/ollama-modelfiles/ornith-9b.Modelfile
+
+ollama pull qwen3:14b
+ollama create qwen3-14b-think -f ~/ollama-modelfiles/qwen3-14b-think.Modelfile
 
 # Verify everything is loaded correctly
 ollama list
@@ -599,7 +633,7 @@ auxiliary:
     extra_body: {}
     language: ''
   tts_audio_tags:
-    provider: auto
+    provider: auto   # TTS not in use — leave on auto or remove if unused
     model: ''
     base_url: ''
     api_key: ''
@@ -775,7 +809,7 @@ this into your Hermes `config.yaml` under `personalities:`.
          - Research, browsing, and web extraction
          - Long-form summarization and documentation work
          - Any task where context pressure is high (>60% of 64K used)
-         - All auxiliary background slots (compression, triage, approval, etc.)
+         - MoA aggregation and heavy aux tasks
 
 
          Tool-calling score: 23/25 — strongest tool-caller in the roster.
@@ -1143,7 +1177,7 @@ These are things that burned hours before being resolved — listed so you don't
 |-------|---------|-----|
 | `provider: auto` in auxiliary | Hermes stops responding, no error | Pin every aux slot to a specific provider+model |
 | `moa.default_preset` not set | `/moa` uses wrong preset | Set `moa.default_preset: local` explicitly |
-| MoA references using wrong model names | MoA runs wrong models | Use Hermes aliases in `moa.presets.local.references` |
+| MoA references using wrong model names | MoA runs wrong models | Use Hermes aliases in `moa.presets.local.reference` |
 
 ### Modelfile Mistakes
 
@@ -1190,26 +1224,6 @@ On 8 GB VRAM (RTX 3070/4060 Ti):
 | ornith-9b | Ornith-1.0-30B (if released) | SWE-Bench ceiling hit |
 | gpt-oss-20b | Devstral (Mistral) | Codebase-scale agentic tasks |
 | qwen3-14b-think | Qwen3-32B | Hitting planning quality limit |
-
-### OpenRouter as Escape Hatch
-
-For truly massive models (70B+, MoE 100B+ like GLM-5.2 at 753B) that cannot run locally:
-
-```yaml
-# Add to providers in config.yaml
-providers:
-  openrouter:
-    api: https://openrouter.ai/api/v1
-    key_env: OPENROUTER_API_KEY
-    models:
-      - model: glm-5.2
-        ollama_model: thudm/glm-4-32b  # best available proxy
-        ollama_num_ctx: 128000
-        context_length: 131072
-```
-
-Cost guard: Route to OpenRouter only on explicit user request or when all local
-models fail. Never use it as a fallback in automated loops — costs accumulate quickly.
 
 ---
 
