@@ -586,9 +586,8 @@ auxiliary:
     model: qwen3-vl-8b
     base_url: ''
     api_key: ''
-    timeout: 120
-    extra_body: {}
-    download_timeout: 30
+    timeout: 300
+    download_timeout: 60
   web_extract:
     provider: ollama-launch
     model: gpt-oss-20b
