@@ -26,7 +26,6 @@ providers:
         ollama_num_batch: 512
         ollama_keep_alive: -1
 
-
       # ── Fast General · Conversation · Light Reasoning · Aux Background ──────
       # ollama create gemma4-heretic-12b -f ~/ollama-modelfiles/gemma4-heretic-12b.Modelfile
       # (builds FROM igorls/gemma-4-12B-it-heretic-GGUF:Q4_K_M)
@@ -43,7 +42,6 @@ providers:
         ollama_num_gpu: 999
         ollama_num_batch: 512
         ollama_keep_alive: -1
-
 
       # ── Deep Analysis · Security Research · Uncensored Reasoning ────────────
       # ollama create qwythos-9b -f ~/ollama-modelfiles/qwythos-9b.Modelfile
@@ -63,7 +61,6 @@ providers:
         ollama_num_gpu: 999
         ollama_num_batch: 512
         ollama_keep_alive: -1
-
 
       # ── Planning · Architecture · Reasoning · Delegation · Replanning ───────
       # ollama pull qwen3:14b
@@ -85,7 +82,6 @@ providers:
         ollama_num_batch: 512
         ollama_keep_alive: -1
 
-
       # ── Fast Coding · Boilerplate · Single-file · Quick Scripts ─────────────
       # ollama pull qwen2.5-coder:7b
       # VRAM: ~5 GB weights + ~3.0 GB KV @ 64K q8_0 = ~8 GB
@@ -100,7 +96,6 @@ providers:
         ollama_num_gpu: 999
         ollama_num_batch: 512
         ollama_keep_alive: -1
-
 
       # ── Agentic Coding · SWE-Bench · Tool Loops · Terminal Workflows ────────
       # ollama create ornith-9b -f ~/ollama-modelfiles/ornith-9b.Modelfile
@@ -122,7 +117,6 @@ providers:
         ollama_num_batch: 512
         ollama_keep_alive: -1
 
-
       # ── Embeddings · RAG · Semantic Search ──────────────────────────────────
       # ollama pull nomic-embed-text:latest
       # Embedding-only — never used for generation
@@ -135,7 +129,6 @@ providers:
         ollama_num_gpu: 999
         ollama_num_batch: 512
         ollama_keep_alive: -1
-
 
       # ── Vision · OCR · Multimodal ───────────────────────────────────────────
       # ollama pull qwen3-vl:8b
@@ -692,46 +685,40 @@ auxiliary:
     download_timeout: 60
   web_extract:
     provider: ollama-launch
-    model: gpt-oss-20b
+    model: gpt-oss:20b
     base_url: ''
     api_key: ''
     timeout: 360
-    extra_body: {}
   compression:
     provider: ollama-launch
     model: gemma4-heretic-12b
     base_url: ''
     api_key: ''
     timeout: 120
-    extra_body: {}
   skills_hub:
     provider: ollama-launch
     model: gemma4-heretic-12b
     base_url: ''
     api_key: ''
-    timeout: 30
-    extra_body: {}
+    timeout: 60
   approval:
     provider: ollama-launch
     model: gemma4-heretic-12b
     base_url: ''
     api_key: ''
-    timeout: 30
-    extra_body: {}
+    timeout: 60
   mcp:
     provider: ollama-launch
     model: gemma4-heretic-12b
     base_url: ''
     api_key: ''
-    timeout: 30
-    extra_body: {}
+    timeout: 60
   title_generation:
     provider: ollama-launch
     model: gemma4-heretic-12b
     base_url: ''
     api_key: ''
-    timeout: 30
-    extra_body: {}
+    timeout: 60
     language: ''
   tts_audio_tags:
     provider: auto
@@ -739,49 +726,42 @@ auxiliary:
     base_url: ''
     api_key: ''
     timeout: 30
-    extra_body: {}
   triage_specifier:
     provider: ollama-launch
     model: gemma4-heretic-12b
     base_url: ''
     api_key: ''
     timeout: 120
-    extra_body: {}
   kanban_decomposer:
     provider: ollama-launch
     model: gemma4-heretic-12b
     base_url: ''
     api_key: ''
     timeout: 180
-    extra_body: {}
   profile_describer:
     provider: ollama-launch
     model: gemma4-heretic-12b
     base_url: ''
     api_key: ''
     timeout: 60
-    extra_body: {}
   curator:
     provider: ollama-launch
     model: gemma4-heretic-12b
     base_url: ''
     api_key: ''
     timeout: 600
-    extra_body: {}
   monitor:
     provider: ollama-launch
     model: gemma4-heretic-12b
     base_url: ''
     api_key: ''
     timeout: 60
-    extra_body: {}
   background_review:
     provider: ollama-launch
     model: gemma4-heretic-12b
     base_url: ''
     api_key: ''
     timeout: 120
-    extra_body: {}
   moa_reference:
     provider: ollama-launch
     model: qwen3-14b-think
@@ -792,18 +772,16 @@ auxiliary:
   moa_reference_2:
     provider: ollama-launch
     model: ornith-9b
-    timeout: 600
     base_url: ''
     api_key: ''
     timeout: 600
-    extra_body: {}    
+    extra_body: {}  
   moa_aggregator:
     provider: ollama-launch
-    model: gpt-oss-20b
+    model: gpt-oss:20b
     base_url: ''
     api_key: ''
     timeout: 600
-    extra_body: {}
 display:
   compact: true
   personality: multimodel
