@@ -52,10 +52,17 @@ reclaiming RAM mid-inference:
 ```ini
 # C:\Users\<YourName>\.wslconfig
 [wsl2]
-memory=40GB          # Give WSL2 bulk of system RAM
-processors=24        # Match your physical + efficiency core count
-swap=32GB            # Large swap prevents OOM on GGUF load
+processors=24
+memory=40GB
+swap=32GB
+swapfile=D:\\wsl-swap.vhdx
 localhostForwarding=true
+# Keep NAT (safer / default)
+# networkingMode=nat
+networkingMode=mirrored
+
+# Optional: shrink memory when idle (already using DROPCACHE semantics)
+# pageReporting=true
 ```
 
 > **Why swap matters:** When a large model loads and VRAM is partially full,
@@ -409,6 +416,7 @@ providers:
         context_length: 65536
         ollama_num_gpu: 999
         ollama_num_batch: 512
+        ollama_keep_alive: -1
 
 
       # ── Fast General · Conversation · Light Reasoning · Aux Background ──────
@@ -426,7 +434,7 @@ providers:
         context_length: 65536
         ollama_num_gpu: 999
         ollama_num_batch: 512
-        keep_alive: -1
+        ollama_keep_alive: -1
 
 
       # ── Deep Analysis · Security Research · Uncensored Reasoning ────────────
@@ -446,6 +454,7 @@ providers:
         context_length: 65536
         ollama_num_gpu: 999
         ollama_num_batch: 512
+        ollama_keep_alive: -1
 
 
       # ── Planning · Architecture · Reasoning · Delegation · Replanning ───────
@@ -466,6 +475,7 @@ providers:
         context_length: 65536
         ollama_num_gpu: 999
         ollama_num_batch: 512
+        ollama_keep_alive: -1
 
 
       # ── Fast Coding · Boilerplate · Single-file · Quick Scripts ─────────────
@@ -481,6 +491,7 @@ providers:
         context_length: 65536
         ollama_num_gpu: 999
         ollama_num_batch: 512
+        ollama_keep_alive: -1
 
 
       # ── Agentic Coding · SWE-Bench · Tool Loops · Terminal Workflows ────────
@@ -501,6 +512,7 @@ providers:
         context_length: 65536
         ollama_num_gpu: 999
         ollama_num_batch: 512
+        ollama_keep_alive: -1
 
 
       # ── Embeddings · RAG · Semantic Search ──────────────────────────────────
@@ -514,6 +526,7 @@ providers:
         context_length: 65536
         ollama_num_gpu: 999
         ollama_num_batch: 512
+        ollama_keep_alive: -1
 
 
       # ── Vision · OCR · Multimodal ───────────────────────────────────────────
@@ -526,6 +539,7 @@ providers:
         context_length: 65536
         ollama_num_gpu: 999
         ollama_num_batch: 512
+        ollama_keep_alive: -1
 
 
     name: Ollama
