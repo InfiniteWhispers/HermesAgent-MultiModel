@@ -587,6 +587,7 @@ auxiliary:
     base_url: ''
     api_key: ''
     timeout: 300
+    extra_body: {}
     download_timeout: 60
   web_extract:
     provider: ollama-launch
