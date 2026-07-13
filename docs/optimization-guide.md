@@ -928,7 +928,8 @@ this into your Hermes `config.yaml` under `personalities:`.
       Auto-detection (apply in order, first match wins):
 
 
-      - Image input                                    → qwen3-vl-8b (immediate)
+      - Image input (attached file OR image URL in message) → qwen3-vl-8b (immediate)
+        Treat any message containing an image URL (.jpg, .png, .gif, .webp, /wp-content/uploads/, etc.) as an image task.
       - Embeddings / RAG / semantic search             → nomic-embed-text
       - Task requires ANY tool call or agent loop      → gpt-oss-20b
       - Agentic coding: multi-step, tool loops         → ornith-9b
@@ -1113,7 +1114,8 @@ this into your Hermes `config.yaml` under `personalities:`.
 
 
       Routing rules (first match wins):
-      - Image input                                → qwen3-vl-8b (immediate)
+      - Image input (attached file OR image URL in message) → qwen3-vl-8b (immediate)
+        Treat any message containing an image URL (.jpg, .png, .gif, .webp, /wp-content/uploads/, etc.) as an image task.
       - Embeddings / RAG / similarity              → nomic-embed-text
       - Requires any tool call or agent loop       → gpt-oss-20b
       - Agentic coding: multi-step, tool loops     → ornith-9b
